@@ -1,0 +1,17 @@
+El flujo del caso de uso normal podría ser el siguiente:
+
+-Desde la applicación movil se envía el vídeo y la fotografía del usuario al client API.
+
+-El Client API le pide al "Storage Service" que almacene esos datos y le dice al "Request Identifier Service" que genere una nueva petición indicándole un identificador de usuario y de contenido multimedia. Inmediatamente le indica al usuario que su petición se esta procesando.
+
+-El "Request identifier Service" crea la petición en base de datos y crea un nuevo mensaje en la cola de trabajo.
+
+-Alguno de los workers del "Identifier Service" recibirá el trabajo y lo procesará. Al terminar de hacerlo deja un mensaje en la cola de trabajos completados de tal forma que el "Request Identifier Service" y el "Third party API" se enteren de que la primera fase a concluido. Esta cola puede estar basada en tópico por ejemplo.
+
+-Algún worker del "Third party API" recibirá el mensaje y se comunicará con el sistema de consolidación manual externo. Este servicio también se comunica con "Storage Service" para obtener las imágenes y videos.
+
+-Cuando el "Third Party service" recibe la respuesta de ok por parte del sistema externo, deja otro mensaje para que el "Request Service Identifier" lo lea y actualice la petición como que esta ya pasó la segunda fase.
+
+Notas:
+
+-Cada uno de los servicios podría desplegarse en un administrador de contenedores como kubernetes para permitir que la aplicación escale cuando la carga de trabajo suba.
